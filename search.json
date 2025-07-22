@@ -39,7 +39,7 @@
     "href": "index.html#solid-fluid-cht-with-natural-convection-the-setup",
     "title": "Natural convection for CHT",
     "section": "Solid-Fluid CHT with Natural Convection : The setup",
-    "text": "Solid-Fluid CHT with Natural Convection : The setup\n\n\nDirichlet-Neumann coupling"
+    "text": "Solid-Fluid CHT with Natural Convection : The setup\n\n\nDirichlet-Neumann coupling\nwhere, \\(\\lambda\\) = ratio of thermal conductivities of fluid to solid."
   },
   {
     "objectID": "index.html#solid-fluid-cht-with-natural-convection-a-first-result",
