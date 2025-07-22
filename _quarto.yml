@@ -1,0 +1,13 @@
+project:
+  type: website
+
+format:
+  revealjs:
+    theme: default
+    code-theme: zenburn
+    slide-number: true
+    fontsize: 16px
+    css: style.css
+
+bibliography: references.bib
+jupyter: python3
