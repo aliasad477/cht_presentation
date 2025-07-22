@@ -1,0 +1,51 @@
+[
+  {
+    "objectID": "index.html#problem-setup-and-model",
+    "href": "index.html#problem-setup-and-model",
+    "title": "Natural convection implementation\nSAMURAI + PETSc",
+    "section": "Problem Setup and Model",
+    "text": "Problem Setup and Model\n*Natural convection in a differentially heated cavity with \\(\\boldsymbol{u}\\), \\(p\\), and \\(T\\): being the vector velocity field, pressure and temperature scalar fields.\n\n\n\n\n\n\n\n\n\nFollowing (Xin and Quéré 2006), we have the nondimensional form of the governing equations for natural convection in cavities with adiabatic horizontal walls. \\[\n\\begin{aligned}\n    &\\partial_t \\boldsymbol{u} + \\boldsymbol{u} \\cdot \\boldsymbol{\\nabla}\\boldsymbol{u} + {\\rm Pr} \\boldsymbol{\\nabla} p + \\frac{{\\rm Pr}}{\\sqrt{\\mathrm{ Ra}}} \\boldsymbol{\\Delta} \\boldsymbol{u} -  {\\rm Pr} T \\mathbf{\\hat{e}}_y &= 0 \\\\\n    &\\boldsymbol{\\nabla} \\cdot \\boldsymbol{u} &= 0, \\\\\n    &\\partial_t T + \\boldsymbol{u}\\cdot \\boldsymbol{\\nabla} T + \\frac{1}{\\sqrt{\\mathrm{ Ra}}} \\boldsymbol{\\Delta} T &= 0,\n\\end{aligned}\n\\] \\(\\quad \\boldsymbol{\\cdot}\\) Rayleigh (\\({\\rm Ra}\\)) and Prandtl (\\({\\rm Pr}\\)) numbers are dimensionless constants,\n\\(\\quad \\boldsymbol{\\cdot}\\) \\(\\mathbf{\\hat{e}}_y\\) is the normal vector for gravity in negative y-direction"
+  },
+  {
+    "objectID": "index.html#numerical-implementation",
+    "href": "index.html#numerical-implementation",
+    "title": "Natural convection implementation\nSAMURAI + PETSc",
+    "section": "Numerical Implementation",
+    "text": "Numerical Implementation\nFor both fluid and temperature fields:\n\nDiffusion, Divergence and Gradient operators are solved implicitly (linear solver).\nConvection\\(\\ \\!^{\\boldsymbol{\\star}}\\) terms and Buoyancy forcing are added explicitly as source terms.\n\n\\[\n\\color{blue}{\n\\begin{bmatrix}\n    I + \\Delta t \\frac{{\\rm Pr}}{\\sqrt{\\mathrm{ Ra}}}  \\boldsymbol{\\Delta} & \\Delta t\\;  {\\rm Pr}\\; \\boldsymbol{\\nabla} & 0 \\\\\n    -\\boldsymbol{\\nabla} & 0 & 0 \\\\\n    0 & 0 & I + \\Delta t  \\frac{1}{\\sqrt{\\mathrm{ Ra}}} \\boldsymbol{\\Delta}\n\\end{bmatrix}\n}\n\\begin{bmatrix}\n    \\boldsymbol{u}^{n+1} \\\\\n    p^{n+1} \\\\\n    T^{n+1}\n\\end{bmatrix}\n=\n\\color{green}{\n\\begin{bmatrix}\n    \\boldsymbol{u}^{n} - \\Delta t \\cdot \\text{conv}(\\boldsymbol{u}^{n}) + {\\rm Pr}\\; T^{n}\\; \\hat{\\mathbf{e}}_y \\\\\n    0 \\\\\n    T^{n} - \\Delta t \\cdot \\text{conv}(T^{n})\n\\end{bmatrix}}\n\\]\n\\[\n\\color{blue}{A} x = \\color{green}{b}\n\\]\nauto natural_convection = samurai::make_block_operator&lt;3, 3&gt;(\n                                    id_vel + dt * diff_vel,    dt * Pr * grad_p,                  zero_temp,\n                                                  -div_vel,              zero_p,                     zero_p,\n                                                  zero_vel,              zero_p,    id_temp + dt * diff_temp\n                            );\nauto natural_convection_solver = samurai::petsc::make_solver&lt;true&gt;(natural_convection);\nnatural_convection_solver.set_unknowns(velocity_np1, pressure_np1, temperature_np1);\nconfigure_direct_solver(natural_convection_solver);\nInside time loop\n// rhs\nrhs_vel = velocity - dt * conv_vel(velocity);\nsamurai::for_each_cell(mesh[mesh_id_t::cells], [&]( auto& cell )\n{\n    rhs_vel[cell][1] += -Pr * temperature[cell]; // Gravity term in -ve y-direction\n    if (cell.corner(0) == 0. && cell.corner(1) == 0.)\n    {\n        // std::cout &lt;&lt; \"Setting reference pressure in cell with origin coords\" &lt;&lt; std::endl;\n        pressure_np1[cell] = 0.; // Set reference pressure for unique solution\n    }\n});\nrhs_temp = temperature - dt * conv_temp(temperature);\n\n// Solve the system\nnatural_convection_solver.solve(rhs_vel, rhs_p, rhs_temp);"
+  },
+  {
+    "objectID": "index.html#boldsymbolstar-convection-operators",
+    "href": "index.html#boldsymbolstar-convection-operators",
+    "title": "Natural convection implementation\nSAMURAI + PETSc",
+    "section": "\\(\\!^{\\boldsymbol{\\star}}\\!\\!\\) Convection operators",
+    "text": "\\(\\!^{\\boldsymbol{\\star}}\\!\\!\\) Convection operators\n\nLinear convection of scalar with fixed velocity\n\nDefinition\nauto conv_temp  = samurai::make_convection_upwind&lt;TemperatureField&gt;(velocity);\nCall\nconv_temp(temperature);\nImplements\n\\(\\boldsymbol{u}_{\\rm {\\scriptsize upwind}} \\cdot \\boldsymbol{\\nabla}\\)\n\nNonlinear convection of velocity vector\n\nDefinition\nauto conv_vel   = samurai::make_convection_upwind&lt;VelocityField&gt;();\nCall\nconv_vel(velocity);\nImplements\n\\(\\boldsymbol{u}_{\\rm {\\scriptsize upwind}} \\otimes \\boldsymbol{u}\\) \\(\\quad\\) ⚠️ \\(\\ \\) It works for incompressible fluid as we explicitly solve for \\(\\nabla \\cdot \\boldsymbol{u} = 0\\) (??)."
+  },
+  {
+    "objectID": "index.html#result-natural-convection-standalone",
+    "href": "index.html#result-natural-convection-standalone",
+    "title": "Natural convection implementation\nSAMURAI + PETSc",
+    "section": "Result: Natural Convection (standalone)",
+    "text": "Result: Natural Convection (standalone)\n\n\n\\({\\rm Ra} = 1{\\rm E+}2\\), \\({\\rm Pr} = 1\\), \\(T_f = 5\\)\n\\(\\ell = [6, 4]\\), \\(\\epsilon_{\\rm MR} = 2{\\rm E-4}\\), \\(MR_{\\rm regularity} = 1\\)\n\n\nRemarks\n\nAMR is not well utilised\nRa \\(&gt;\\) 1E+3 : code diverges (explicit buoyancy forcing?, explicit nonlinear terms, finer mesh ?)"
+  },
+  {
+    "objectID": "index.html#result-natural-convection-standalone-1",
+    "href": "index.html#result-natural-convection-standalone-1",
+    "title": "Natural convection implementation\nSAMURAI + PETSc",
+    "section": "Result: Natural Convection (standalone)",
+    "text": "Result: Natural Convection (standalone)\n\n\n\\({\\rm Ra} = 1{\\rm E+}3\\), \\({\\rm Pr} = 1\\), \\(T_f = 2\\)\n\\(\\ell = [6, 4]\\), \\(\\epsilon_{\\rm MR} = 2{\\rm E-4}\\), \\(MR_{\\rm regularity} = 1\\)"
+  },
+  {
+    "objectID": "index.html#result-solid-fluid-cht-with-natural-convection",
+    "href": "index.html#result-solid-fluid-cht-with-natural-convection",
+    "title": "Natural convection implementation\nSAMURAI + PETSc",
+    "section": "Result: Solid-Fluid CHT with Natural Convection",
+    "text": "Result: Solid-Fluid CHT with Natural Convection\n(SAMURAI + PETSc + CWIPI)\n\n\\({\\rm Ra} = 1{\\rm E+}2\\), \\({\\rm Pr} = 1\\), \\(T_f = 40\\)\n\\(\\ell_{\\rm left} = 4\\), \\(\\ell_{\\rm right} = 5\\)\n\\(\\Delta t_{\\rm coupling} = 0.1\\)\n\n\nRemarks\n\nAMR not implemented\nFirst-order BE: slower (probably inefficient implimentation) than ponio \nPonio: solver implementation with PETSc state vector created by block assembly (possible solution found with JM, not implemented)"
+  },
+  {
+    "objectID": "index.html#references",
+    "href": "index.html#references",
+    "title": "Natural convection implementation\nSAMURAI + PETSc",
+    "section": "References",
+    "text": "References\n\n\nXin, Shihe, and Patrick Le Quéré. 2006. “Natural-Convection Flows in Air-Filled, Differentially Heated Cavities with Adiabatic Horizontal Walls.” Numerical Heat Transfer, Part A: Applications 50 (5): 437–66."
+  }
+]
