@@ -1,0 +1,212 @@
+---
+title: |
+       Natural convection implementation \
+        ```SAMURAI + PETSc```
+format: 
+    revealjs:
+        theme: default
+        code-theme: zenburn
+        slide-number: true
+        fontsize: 20px
+        css: style.css
+bibliography: references.bib
+jupyter: python3
+---
+
+## Problem Setup and Model
+*Natural convection in a differentially heated cavity with $\boldsymbol{u}$, $p$, and $T$: being the vector velocity field, pressure and temperature scalar fields.
+```{python .hide-code}
+import matplotlib.pyplot as plt
+
+# Create a figure and axis
+fig, ax = plt.subplots(figsize=(4,4), dpi=100)
+# fig.set_dpi(300)
+
+# Draw the square (unit box from (0,0) to (1,1))
+square = plt.Rectangle((0, 0), 1, 1, fill=None, edgecolor='black', linewidth=2)
+ax.add_patch(square)
+
+# Add labels
+ax.text(0.07, 0.5, 'Hot', va='center', ha='right', fontsize=12, rotation=90)         # Left
+ax.text(0.995, 0.5, 'Cold', va='center', ha='right', fontsize=12, rotation=90)         # Left
+ax.text(-0.05, 0.5, r'$T=1, \quad \boldsymbol{u}=0, \quad \boldsymbol{\nabla}p = 0$', va='center', ha='right', fontsize=12, rotation=90)         # Left
+ax.text(0.5, 1.03, r'$\nabla T=0, \quad \boldsymbol{u}=0, \quad \boldsymbol{\nabla}p = 0$', va='bottom', ha='center', fontsize=12)                     # Top
+ax.text(1.05, 0.5, r'$T=0, \quad \boldsymbol{u}=0, \quad \boldsymbol{\nabla}p = 0$', va='center', ha='left', fontsize=12, rotation=90)           # Right
+ax.text(0.5, 0.5, r'$\boldsymbol{\longleftarrow}$', va='center', ha='left', fontsize=12, rotation=90)           
+ax.text(0.54, 0.51, r'$\boldsymbol{g}$', va='center', ha='left', fontsize=12, rotation=0)           
+ax.text(0.5, -0.03, r"$\nabla T=0, \quad \boldsymbol{u}=0, \quad \boldsymbol{\nabla}p = 0$", va='top', ha='center', fontsize=12)                       # Bottom
+
+# Set limits and aspect
+ax.set_xlim(-0.2, 1.2)
+ax.set_ylim(-0.2, 1.2)
+ax.set_aspect('equal')
+ax.axis('off')  # Turn off axes
+
+# Show the plot
+plt.tight_layout()
+plt.show()
+```
+Following [@xin2006natural], we have the nondimensional form of the governing equations for natural convection in cavities with adiabatic horizontal walls. 
+$$
+\begin{aligned}
+    &\partial_t \boldsymbol{u} + \boldsymbol{u} \cdot \boldsymbol{\nabla}\boldsymbol{u} + {\rm Pr} \boldsymbol{\nabla} p + \frac{{\rm Pr}}{\sqrt{\mathrm{ Ra}}} \boldsymbol{\Delta} \boldsymbol{u} -  {\rm Pr} T \mathbf{\hat{e}}_y &= 0 \\
+    &\boldsymbol{\nabla} \cdot \boldsymbol{u} &= 0, \\
+    &\partial_t T + \boldsymbol{u}\cdot \boldsymbol{\nabla} T + \frac{1}{\sqrt{\mathrm{ Ra}}} \boldsymbol{\Delta} T &= 0,
+\end{aligned}
+$$
+$\quad \boldsymbol{\cdot}$  Rayleigh (${\rm Ra}$) and Prandtl (${\rm Pr}$) numbers are dimensionless constants,  
+$\quad \boldsymbol{\cdot}$  $\mathbf{\hat{e}}_y$ is the normal vector for gravity in negative y-direction
+
+---
+
+## Numerical Implementation
+
+For both fluid and temperature fields:
+
+- **Diffusion**, **Divergence** and **Gradient** operators are solved <span style="color: blue;">*implicitly*</span> (*linear solver*). 
+- **Convection**$\ \!^{\boldsymbol{\star}}$ terms and **Buoyancy forcing** are added <span style="color: green;">*explicitly*</span> as source terms. 
+
+$$
+\color{blue}{
+\begin{bmatrix}
+    I + \Delta t \frac{{\rm Pr}}{\sqrt{\mathrm{ Ra}}}  \boldsymbol{\Delta} & \Delta t\;  {\rm Pr}\; \boldsymbol{\nabla} & 0 \\
+    -\boldsymbol{\nabla} & 0 & 0 \\
+    0 & 0 & I + \Delta t  \frac{1}{\sqrt{\mathrm{ Ra}}} \boldsymbol{\Delta} 
+\end{bmatrix}
+}
+\begin{bmatrix}
+    \boldsymbol{u}^{n+1} \\
+    p^{n+1} \\
+    T^{n+1}
+\end{bmatrix}
+=
+\color{green}{
+\begin{bmatrix}
+    \boldsymbol{u}^{n} - \Delta t \cdot \text{conv}(\boldsymbol{u}^{n}) + {\rm Pr}\; T^{n}\; \hat{\mathbf{e}}_y \\
+    0 \\
+    T^{n} - \Delta t \cdot \text{conv}(T^{n})
+\end{bmatrix}}
+$$
+
+$$
+\color{blue}{A} x = \color{green}{b}
+$$
+
+
+```cpp
+auto natural_convection = samurai::make_block_operator<3, 3>(
+                                    id_vel + dt * diff_vel,    dt * Pr * grad_p,                  zero_temp,
+                                                  -div_vel,              zero_p,                     zero_p,
+                                                  zero_vel,              zero_p,    id_temp + dt * diff_temp
+                            );
+
+```
+```cpp
+auto natural_convection_solver = samurai::petsc::make_solver<true>(natural_convection);
+natural_convection_solver.set_unknowns(velocity_np1, pressure_np1, temperature_np1);
+configure_direct_solver(natural_convection_solver);
+```
+Inside time loop
+```cpp
+// rhs
+rhs_vel = velocity - dt * conv_vel(velocity);
+samurai::for_each_cell(mesh[mesh_id_t::cells], [&]( auto& cell )
+{
+    rhs_vel[cell][1] += -Pr * temperature[cell]; // Gravity term in -ve y-direction
+    if (cell.corner(0) == 0. && cell.corner(1) == 0.)
+    {
+        // std::cout << "Setting reference pressure in cell with origin coords" << std::endl;
+        pressure_np1[cell] = 0.; // Set reference pressure for unique solution
+    }
+});
+rhs_temp = temperature - dt * conv_temp(temperature);
+
+// Solve the system
+natural_convection_solver.solve(rhs_vel, rhs_p, rhs_temp);
+```
+
+---
+
+## $\!^{\boldsymbol{\star}}\!\!$ Convection operators
+- Linear convection of scalar with fixed velocity
+
+<span style="font-size: 85%;">*Definition*</span> 
+```cpp 
+auto conv_temp  = samurai::make_convection_upwind<TemperatureField>(velocity);
+```
+<span style="font-size: 85%;">*Call*</span> 
+```cpp
+conv_temp(temperature);
+```
+<span style="font-size: 85%;">*Implements*</span> 
+
+$\boldsymbol{u}_{\rm {\scriptsize upwind}} \cdot \boldsymbol{\nabla}$
+
+- Nonlinear convection of velocity vector
+
+<span style="font-size: 85%;">*Definition*</span> 
+```cpp
+auto conv_vel   = samurai::make_convection_upwind<VelocityField>();
+```
+<span style="font-size: 85%;">*Call*</span> 
+```cpp
+conv_vel(velocity);
+```
+<span style="font-size: 85%;">*Implements*</span>  
+
+$\boldsymbol{u}_{\rm {\scriptsize upwind}} \otimes \boldsymbol{u}$ 
+$\quad$ <span style="font-size: 75%;">⚠️ $\ $ It works for incompressible fluid as we explicitly solve for $\nabla \cdot \boldsymbol{u} = 0$ (??).</span> 
+
+---
+
+## Result: Natural Convection (standalone)
+<!-- <span style="font-size: 85%;"> 
+Parameters</span> -->
+- <span style="font-size: 75%;">${\rm Ra} = 1{\rm E+}2$, ${\rm Pr} = 1$, $T_f = 5$</span>
+- <span style="font-size: 75%;">$\ell = [6, 4]$, $\epsilon_{\rm MR} = 2{\rm E-4}$, $MR_{\rm regularity} = 1$</span>
+
+![](nat_conv_Ra1e+02.gif){height=400px}
+
+<span style="font-size: 85%;">Remarks</span>
+
+-  <span style="font-size: 85%;">AMR is not well utilised</span>
+-  <span style="font-size: 85%;">Ra $>$ 1E+3 : code diverges (explicit buoyancy forcing?, explicit nonlinear terms, finer mesh ?) </span> 
+
+---
+
+## Result: Natural Convection (standalone)
+<!-- <span style="font-size: 85%;"> 
+Parameters</span> -->
+- <span style="font-size: 75%;">${\rm Ra} = 1{\rm E+}3$, ${\rm Pr} = 1$, $T_f = 2$</span>
+- <span style="font-size: 75%;">$\ell = [6, 4]$, $\epsilon_{\rm MR} = 2{\rm E-4}$, $MR_{\rm regularity} = 1$</span>
+
+![](nat_conv_Ra1e+03.gif){height=400px}
+
+<!-- <span style="font-size: 85%;">Remarks</span>
+
+-  <span style="font-size: 85%;">AMR is not well utilised</span>
+-  <span style="font-size: 85%;">Ra $>$ 1E+3 : code diverges (explicit buoyancy forcing?, explicit nonlinear terms, finer mesh ?) </span>  -->
+
+---
+
+## Result: Solid-Fluid CHT with Natural Convection 
+
+**(`SAMURAI` + `PETSc` + <span style="color: red; font-family: monospace;">CWIPI</span>)**
+
+- <span style="font-size: 75%;">${\rm Ra} = 1{\rm E+}2$, ${\rm Pr} = 1$, $T_f = 40$</span>
+- <span style="font-size: 75%;">$\ell_{\rm left} = 4$, $\ell_{\rm right} = 5$</span>
+- <span style="font-size: 75%;">$\Delta t_{\rm coupling} = 0.1$</span>
+
+![](cht_temp_isosurface.gif){height=400px}
+
+<span style="font-size: 85%;">Remarks</span>
+
+-  <span style="font-size: 85%;">AMR not implemented</span>
+-  <span style="font-size: 85%;">First-order BE: slower (probably inefficient implimentation) than ponio </span> 
+-  <span style="font-size: 85%;">Ponio: solver implementation with PETSc state vector created by block assembly (possible solution found with JM, not implemented) </span> 
+
+---
+
+## References
+::: {#refs}
+:::

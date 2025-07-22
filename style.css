@@ -1,0 +1,30 @@
+/* Center all markdown headings (h1, h2, h3, etc.) */
+/* .reveal h2, */
+/* .reveal h3, */
+/* .reveal h4, */
+/* .reveal h5, */
+/* .reveal h6 { */
+.reveal h1,
+.reveal h2,
+.reveal h3
+{
+  text-align: center;
+  color:cadetblue 
+}
+
+/* Center Python output images (e.g., Matplotlib figures) */
+.reveal .cell-output-display {
+  display: flex;
+  justify-content: center;
+}
+
+/* Optional: Center standalone <img> tags from markdown too */
+.reveal img {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.reveal .slide section#refs {
+  font-size: 2em;  /* or try 120%, 18px, etc. */
+}
