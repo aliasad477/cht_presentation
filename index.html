@@ -11,7 +11,7 @@
 
   <meta name="author" content="Ali ASAD">
   <meta name="dcterms.date" content="2025-07-22">
-  <title>Natural convection implementation SAMURAI + PETSc</title>
+  <title>Natural convection for CHT</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
@@ -215,8 +215,7 @@
     <div class="slides">
 
 <section id="title-slide" class="quarto-title-block center">
-  <h1 class="title"><p>Natural convection implementation<br>
-<code>SAMURAI + PETSc</code></p></h1>
+  <h1 class="title">Natural convection for CHT</h1>
 
 <div class="quarto-title-authors">
 <div class="quarto-title-author">
@@ -230,8 +229,8 @@ Ali ASAD
 </section>
 <section id="problem-setup-and-model" class="slide level2">
 <h2>Problem Setup and Model</h2>
-<p>*Natural convection in a differentially heated cavity with <span class="math inline">\(\boldsymbol{u}\)</span>, <span class="math inline">\(p\)</span>, and <span class="math inline">\(T\)</span>: being the vector velocity field, pressure and temperature scalar fields.</p>
-<div id="66895983" class="cell" data-execution_count="1">
+<p>Natural convection in a differentially heated cavity with <span class="math inline">\(\boldsymbol{u}\)</span>, <span class="math inline">\(p\)</span>, and <span class="math inline">\(T\)</span> being the vector velocity field, pressure and temperature scalar fields, respectively.</p>
+<div id="d2c064e8" class="cell" data-execution_count="1">
 <div class="cell-output cell-output-display">
 <div>
 <figure>
@@ -310,65 +309,82 @@ Ali ASAD
 <ul>
 <li>Linear convection of scalar with fixed velocity</li>
 </ul>
-<p><span style="font-size: 85%;"><em>Definition</em></span></p>
+<p><span style="font-size: 90%;"><em>Definition</em></span></p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode numberSource cpp number-lines code-with-copy"><code class="sourceCode cpp"><span id="cb4-1"><a></a><span class="kw">auto</span> conv_temp  <span class="op">=</span> samurai<span class="op">::</span>make_convection_upwind<span class="op">&lt;</span>TemperatureField<span class="op">&gt;(</span>velocity<span class="op">);</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p><span style="font-size: 85%;"><em>Call</em></span></p>
+<p><span style="font-size: 90%;"><em>Call</em></span></p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode numberSource cpp number-lines code-with-copy"><code class="sourceCode cpp"><span id="cb5-1"><a></a>conv_temp<span class="op">(</span>temperature<span class="op">);</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p><span style="font-size: 85%;"><em>Implements</em></span></p>
+<p><span style="font-size: 90%;"><em>Implements</em></span></p>
 <p><span class="math inline">\(\boldsymbol{u}_{\rm {\scriptsize upwind}} \cdot \boldsymbol{\nabla}\)</span></p>
 <ul>
 <li>Nonlinear convection of velocity vector</li>
 </ul>
-<p><span style="font-size: 85%;"><em>Definition</em></span></p>
+<p><span style="font-size: 90%;"><em>Definition</em></span></p>
 <div class="sourceCode" id="cb6"><pre class="sourceCode numberSource cpp number-lines code-with-copy"><code class="sourceCode cpp"><span id="cb6-1"><a></a><span class="kw">auto</span> conv_vel   <span class="op">=</span> samurai<span class="op">::</span>make_convection_upwind<span class="op">&lt;</span>VelocityField<span class="op">&gt;();</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p><span style="font-size: 85%;"><em>Call</em></span></p>
+<p><span style="font-size: 90%;"><em>Call</em></span></p>
 <div class="sourceCode" id="cb7"><pre class="sourceCode numberSource cpp number-lines code-with-copy"><code class="sourceCode cpp"><span id="cb7-1"><a></a>conv_vel<span class="op">(</span>velocity<span class="op">);</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p><span style="font-size: 85%;"><em>Implements</em></span></p>
-<p><span class="math inline">\(\boldsymbol{u}_{\rm {\scriptsize upwind}} \otimes \boldsymbol{u}\)</span> <span class="math inline">\(\quad\)</span> <span style="font-size: 75%;">⚠️ <span class="math inline">\(\ \)</span> It works for incompressible fluid as we explicitly solve for <span class="math inline">\(\nabla \cdot \boldsymbol{u} = 0\)</span> (??).</span></p>
+<p><span style="font-size: 90%;"><em>Implements</em></span></p>
+<p><span class="math inline">\(\boldsymbol{u}_{\rm {\scriptsize upwind}} \otimes \boldsymbol{u}\)</span> <span class="math inline">\(\quad\)</span> <span style="font-size: 85%;">⚠️ <span class="math inline">\(\ \)</span> It works for incompressible fluid as we explicitly solve for <span class="math inline">\(\nabla \cdot \boldsymbol{u} = 0\)</span> (??).</span></p>
 </section>
 <section id="result-natural-convection-standalone" class="slide level2">
 <h2>Result: Natural Convection (standalone)</h2>
-<!-- <span style="font-size: 85%;"> 
+<!-- <span style="font-size: 90%;"> 
 Parameters</span> -->
 <ul>
-<li><span style="font-size: 75%;"><span class="math inline">\({\rm Ra} = 1{\rm E+}2\)</span>, <span class="math inline">\({\rm Pr} = 1\)</span>, <span class="math inline">\(T_f = 5\)</span></span></li>
-<li><span style="font-size: 75%;"><span class="math inline">\(\ell = [6, 4]\)</span>, <span class="math inline">\(\epsilon_{\rm MR} = 2{\rm E-4}\)</span>, <span class="math inline">\(MR_{\rm regularity} = 1\)</span></span></li>
+<li><span style="font-size: 85%;"><span class="math inline">\({\rm Ra} = 1{\rm E+}2\)</span>, <span class="math inline">\({\rm Pr} = 1\)</span>, <span class="math inline">\(T_f = 5\)</span></span></li>
+<li><span style="font-size: 85%;"><span class="math inline">\(\ell = [6, 4]\)</span>, <span class="math inline">\(\epsilon_{\rm MR} = 2{\rm E-4}\)</span>, <span class="math inline">\(MR_{\rm regularity} = 1\)</span></span></li>
 </ul>
 <p><img data-src="nat_conv_Ra1e+02.gif" height="400"></p>
-<p><span style="font-size: 85%;">Remarks</span></p>
+<p><span style="font-size: 90%;">Remarks</span></p>
 <ul>
-<li><span style="font-size: 85%;">AMR is not well utilised</span></li>
-<li><span style="font-size: 85%;">Ra <span class="math inline">\(&gt;\)</span> 1E+3 : code diverges (explicit buoyancy forcing?, explicit nonlinear terms, finer mesh ?) </span></li>
+<li><span style="font-size: 90%;">AMR is not well utilised</span></li>
+<li><span style="font-size: 90%;">Ra <span class="math inline">\(&gt;\)</span> 1E+3 : code diverges (explicit buoyancy forcing?, explicit nonlinear terms, finer mesh ?) </span></li>
 </ul>
 </section>
 <section id="result-natural-convection-standalone-1" class="slide level2">
 <h2>Result: Natural Convection (standalone)</h2>
-<!-- <span style="font-size: 85%;"> 
+<!-- <span style="font-size: 90%;"> 
 Parameters</span> -->
 <ul>
-<li><span style="font-size: 75%;"><span class="math inline">\({\rm Ra} = 1{\rm E+}3\)</span>, <span class="math inline">\({\rm Pr} = 1\)</span>, <span class="math inline">\(T_f = 2\)</span></span></li>
-<li><span style="font-size: 75%;"><span class="math inline">\(\ell = [6, 4]\)</span>, <span class="math inline">\(\epsilon_{\rm MR} = 2{\rm E-4}\)</span>, <span class="math inline">\(MR_{\rm regularity} = 1\)</span></span></li>
+<li><span style="font-size: 85%;"><span class="math inline">\({\rm Ra} = 1{\rm E+}3\)</span>, <span class="math inline">\({\rm Pr} = 1\)</span>, <span class="math inline">\(T_f = 2\)</span></span></li>
+<li><span style="font-size: 85%;"><span class="math inline">\(\ell = [6, 4]\)</span>, <span class="math inline">\(\epsilon_{\rm MR} = 2{\rm E-4}\)</span>, <span class="math inline">\(MR_{\rm regularity} = 1\)</span></span></li>
 </ul>
 <p><img data-src="nat_conv_Ra1e+03.gif" height="400"></p>
-<!-- <span style="font-size: 85%;">Remarks</span>
+<!-- <span style="font-size: 90%;">Remarks</span>
 
--  <span style="font-size: 85%;">AMR is not well utilised</span>
--  <span style="font-size: 85%;">Ra $>$ 1E+3 : code diverges (explicit buoyancy forcing?, explicit nonlinear terms, finer mesh ?) </span>  -->
+-  <span style="font-size: 90%;">AMR is not well utilised</span>
+-  <span style="font-size: 90%;">Ra $>$ 1E+3 : code diverges (explicit buoyancy forcing?, explicit nonlinear terms, finer mesh ?) </span>  -->
 </section>
-<section id="result-solid-fluid-cht-with-natural-convection" class="slide level2">
-<h2>Result: Solid-Fluid CHT with Natural Convection</h2>
+<section id="solid-fluid-cht-with-natural-convection-the-setup" class="slide level2">
+<h2>Solid-Fluid CHT with Natural Convection : The setup</h2>
+<p><br>
+</p>
+<p align="center" ,="" style="color: red;"><strong>Dirichlet-Neumann coupling</strong></p>
+<p><br>
+</p>
+<div id="1c8bc542" class="cell" data-execution_count="2">
+<div class="cell-output cell-output-display">
+<div>
+<figure>
+<p><img data-src="index_files/figure-revealjs/cell-3-output-1.png" width="790" height="790"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="solid-fluid-cht-with-natural-convection-a-first-result" class="slide level2">
+<h2>Solid-Fluid CHT with Natural Convection: A first result</h2>
 <p><strong>(<code>SAMURAI</code> + <code>PETSc</code> + <span style="color: red; font-family: monospace;">CWIPI</span>)</strong></p>
 <ul>
-<li><span style="font-size: 75%;"><span class="math inline">\({\rm Ra} = 1{\rm E+}2\)</span>, <span class="math inline">\({\rm Pr} = 1\)</span>, <span class="math inline">\(T_f = 40\)</span></span></li>
-<li><span style="font-size: 75%;"><span class="math inline">\(\ell_{\rm left} = 4\)</span>, <span class="math inline">\(\ell_{\rm right} = 5\)</span></span></li>
-<li><span style="font-size: 75%;"><span class="math inline">\(\Delta t_{\rm coupling} = 0.1\)</span></span></li>
+<li><span style="font-size: 85%;"><span class="math inline">\({\rm Ra} = 1{\rm E+}2\)</span>, <span class="math inline">\({\rm Pr} = 1\)</span>, <span class="math inline">\(T_f = 40\)</span></span></li>
+<li><span style="font-size: 85%;"><span class="math inline">\(\ell_{\rm left} = 4\)</span>, <span class="math inline">\(\ell_{\rm right} = 5\)</span></span></li>
+<li><span style="font-size: 85%;"><span class="math inline">\(\Delta t_{\rm coupling} = 0.1\)</span></span></li>
 </ul>
 <p><img data-src="cht_temp_isosurface.gif" height="400"></p>
-<p><span style="font-size: 85%;">Remarks</span></p>
+<p><span style="font-size: 90%;">Remarks</span></p>
 <ul>
-<li><span style="font-size: 85%;">AMR not implemented</span></li>
-<li><span style="font-size: 85%;">First-order BE: slower (probably inefficient implimentation) than ponio </span></li>
-<li><span style="font-size: 85%;">Ponio: solver implementation with PETSc state vector created by block assembly (possible solution found with JM, not implemented) </span></li>
+<li><span style="font-size: 90%;">AMR not implemented</span></li>
+<li><span style="font-size: 90%;">First-order BE: slower (probably inefficient implimentation) than ponio </span></li>
+<li><span style="font-size: 90%;">Ponio: solver implementation with PETSc state vector created by block assembly (possible solution found with JM, not implemented) </span></li>
 </ul>
 </section>
 <section id="references" class="slide level2 smaller scrollable">
@@ -665,7 +681,7 @@ Xin, Shihe, and Patrick Le Quéré. 2006. <span>“Natural-Convection Flows in A
         }
           var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
           var mailtoRegex = new RegExp(/^mailto:/);
-            var filterRegex = new RegExp('/' + window.location.host + '/');
+            var filterRegex = new RegExp("https:\/\/aliasad477\.github\.io\/cht_presentation\/");
           var isInternal = (href) => {
               return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
           }
