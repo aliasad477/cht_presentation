@@ -56,11 +56,11 @@
     "text": "Solid-Fluid CHT with Natural Convection: Study 1 (base)\n\n\\(T_{\\rm hot} = 1\\), \\(\\lambda = 2\\), \\({\\rm Ra} = 1{\\rm E+}2\\), \\({\\rm Pr} = 1\\)\n\\(\\ell_{\\rm left} = 4\\), \\(\\ell_{\\rm right} = 5\\)\n\\(\\Delta t_{\\rm coupling} = 0.1\\), \\(T_f = 40\\)\n\nmpirun -n 2 tests/cht_solid_fluid_cwipi_samurai -t1 40 -dt 0.1 -T_hot 1 -lambda 2 -Ra 100 -visu_freq 10 -export_velocity"
   },
   {
-    "objectID": "index.html#solid-fluid-cht-with-natural-convection-study-2-lamda",
-    "href": "index.html#solid-fluid-cht-with-natural-convection-study-2-lamda",
+    "objectID": "index.html#solid-fluid-cht-with-natural-convection-study-2-lambda",
+    "href": "index.html#solid-fluid-cht-with-natural-convection-study-2-lambda",
     "title": "Natural convection for CHT",
-    "section": "Solid-Fluid CHT with Natural Convection: Study 2 (\\(\\lamda\\))",
-    "text": "Solid-Fluid CHT with Natural Convection: Study 2 (\\(\\lamda\\))\n\n\\(T_{\\rm hot} = 1\\), \\(\\lambda = 4\\), \\({\\rm Ra} = 1{\\rm E+}2\\), \\({\\rm Pr} = 1\\)\n\\(\\ell_{\\rm left} = 4\\), \\(\\ell_{\\rm right} = 5\\)\n\\(\\Delta t_{\\rm coupling} = 0.1\\), \\(T_f = 40\\)\n\nmpirun -n 2 tests/cht_solid_fluid_cwipi_samurai -t1 40 -dt 0.1 -T_hot 1 -lambda 4 -Ra 100 -visu_freq 10 -export_velocity"
+    "section": "Solid-Fluid CHT with Natural Convection: Study 2 (\\(\\lambda\\))",
+    "text": "Solid-Fluid CHT with Natural Convection: Study 2 (\\(\\lambda\\))\n\n\\(T_{\\rm hot} = 1\\), \\(\\lambda = 4\\), \\({\\rm Ra} = 1{\\rm E+}2\\), \\({\\rm Pr} = 1\\)\n\\(\\ell_{\\rm left} = 4\\), \\(\\ell_{\\rm right} = 5\\)\n\\(\\Delta t_{\\rm coupling} = 0.1\\), \\(T_f = 40\\)\n\nmpirun -n 2 tests/cht_solid_fluid_cwipi_samurai -t1 40 -dt 0.1 -T_hot 1 -lambda 4 -Ra 100 -visu_freq 10 -export_velocity"
   },
   {
     "objectID": "index.html#solid-fluid-cht-with-natural-convection-study-3-ra",
