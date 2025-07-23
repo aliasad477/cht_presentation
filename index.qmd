@@ -156,7 +156,7 @@ Parameters</span> -->
 - <span style="font-size: 85%;">${\rm Ra} = 1{\rm E+}2$, ${\rm Pr} = 1$, $T_f = 5$</span>
 - <span style="font-size: 85%;">$\ell = [6, 4]$, $\epsilon_{\rm MR} = 2{\rm E-4}$, $MR_{\rm regularity} = 1$</span>
 
-![](nat_conv_Ra1e+02.gif){height=400px}
+![](figs/nat_conv_Ra1e+02.gif){height=400px}
 
 <span style="font-size: 90%;">Remarks</span>
 
@@ -171,7 +171,7 @@ Parameters</span> -->
 - <span style="font-size: 85%;">${\rm Ra} = 1{\rm E+}3$, ${\rm Pr} = 1$, $T_f = 2$</span>
 - <span style="font-size: 85%;">$\ell = [6, 4]$, $\epsilon_{\rm MR} = 2{\rm E-4}$, $MR_{\rm regularity} = 1$</span>
 
-![](nat_conv_Ra1e+03.gif){height=400px}
+![](figs/nat_conv_Ra1e+03.gif){height=400px}
 
 <!-- <span style="font-size: 90%;">Remarks</span>
 
@@ -185,7 +185,10 @@ Parameters</span> -->
 \
 
 <p align="left", style="color: red;"><strong>Dirichlet-Neumann coupling</strong></p>
-where, $\lambda$ = ratio of thermal conductivities of fluid to solid.
+where, $\lambda$ = ratio of thermal conductivities of fluid ($=1/\sqrt{{\rm Ra}}$) to solid.
+
+\
+\
 
 <!-- ```{python .hide-code} -->
 ```{python}
@@ -226,7 +229,7 @@ ax.text(0.5 + ll, -0.03, r"$\boldsymbol{\nabla} T \cdot \hat{\boldsymbol{n}}=0$"
 # Set limits and aspect
 ax.set_xlim(-1.7, 1.2)
 ax.set_ylim(-1.7, 1.2)
-# ax.set_aspect('equal')
+ax.set_aspect('equal')
 ax.axis('off')  # Turn off axes
 
 # fig.patch.set_alpha(0)    # Transparent figure background
@@ -245,11 +248,11 @@ plt.show()
 
 **(`SAMURAI` + `PETSc` + <span style="color: red; font-family: monospace;">CWIPI</span>)**
 
-- <span style="font-size: 85%;">${\rm Ra} = 1{\rm E+}2$, ${\rm Pr} = 1$, $T_f = 40$</span>
+- <span style="font-size: 85%;">$T_{\rm hot} = 1$, $\lambda = 1$, ${\rm Ra} = 1{\rm E+}2$, ${\rm Pr} = 1$</span>
 - <span style="font-size: 85%;">$\ell_{\rm left} = 4$, $\ell_{\rm right} = 5$</span>
-- <span style="font-size: 85%;">$\Delta t_{\rm coupling} = 0.1$</span>
+- <span style="font-size: 85%;">$\Delta t_{\rm coupling} = 0.1$, $T_f = 40$</span>
 
-![](cht_temp_isosurface.gif){height=400px}
+![](figs/cht_temp_isosurface.gif){height=400px}
 
 <span style="font-size: 90%;">Remarks</span>
 
@@ -257,6 +260,71 @@ plt.show()
 -  <span style="font-size: 90%;">First-order BE: slower (probably inefficient implimentation) than ponio </span> 
 -  <span style="font-size: 90%;">Ponio: solver implementation with PETSc state vector created by block assembly (possible solution found with JM, not implemented) </span> 
 
+---
+
+## Solid-Fluid CHT with Natural Convection: Study 1 (*base*)
+
+- <span style="font-size: 85%;">$T_{\rm hot} = 1$, $\lambda = 2$, ${\rm Ra} = 1{\rm E+}2$, ${\rm Pr} = 1$</span>
+- <span style="font-size: 85%;">$\ell_{\rm left} = 4$, $\ell_{\rm right} = 5$</span>
+- <span style="font-size: 85%;">$\Delta t_{\rm coupling} = 0.1$, $T_f = 40$</span>
+```{shell}
+mpirun -n 2 tests/cht_solid_fluid_cwipi_samurai -t1 40 -dt 0.1 -T_hot 1 -lambda 2 -Ra 100 -visu_freq 10 -export_velocity
+```
+
+<div style="display: flex; flex-direction: column; gap: -50px;">
+  <img src="figs/cht_solid_fluid_temp_Thot1_lambda2_Ra1E+02_tf40_dt1E-01.gif" height="300">
+  <img src="figs/cht_fluid_velocity_Thot1_lambda2_Ra1E+02_tf40_dt1E-01.gif" height="300" style="margin-top: -60px; margin-left: 425px;">
+</div>
+
+---
+
+## Solid-Fluid CHT with Natural Convection: Study 2 ($\lambda$)
+
+- <span style="font-size: 85%;">$T_{\rm hot} = 1$, $\lambda = 4$, ${\rm Ra} = 1{\rm E+}2$, ${\rm Pr} = 1$</span>
+- <span style="font-size: 85%;">$\ell_{\rm left} = 4$, $\ell_{\rm right} = 5$</span>
+- <span style="font-size: 85%;">$\Delta t_{\rm coupling} = 0.1$, $T_f = 40$</span>
+```{shell}
+mpirun -n 2 tests/cht_solid_fluid_cwipi_samurai -t1 40 -dt 0.1 -T_hot 1 -lambda 4 -Ra 100 -visu_freq 10 -export_velocity
+```
+
+<div style="display: flex; flex-direction: column; gap: -50px;">
+  <img src="figs/cht_solid_fluid_temp_Thot1_lambda4_Ra1E+02_tf40_dt1E-01.gif" height="300">
+  <img src="figs/cht_fluid_velocity_Thot1_lambda4_Ra1E+02_tf40_dt1E-01.gif" height="300" style="margin-top: -60px; margin-left: 425px;">
+</div>
+
+---
+
+## Solid-Fluid CHT with Natural Convection: Study 3 (Ra)
+
+- <span style="font-size: 85%;">$T_{\rm hot} = 1$, $\lambda = 4$, ${\rm Ra} = 1{\rm E+}3$, ${\rm Pr} = 1$</span>
+- <span style="font-size: 85%;">$\ell_{\rm left} = 4$, $\ell_{\rm right} = 5$</span>
+- <span style="font-size: 85%;">$\Delta t_{\rm coupling} = 0.1$, $T_f = 40$</span>
+
+```{shell}
+mpirun -n 2 tests/cht_solid_fluid_cwipi_samurai -t1 40 -dt 0.1 -T_hot 1 -lambda 4 -Ra 1000 -visu_freq 10 -export_velocity
+```
+
+<div style="display: flex; flex-direction: column; gap: -50px;">
+  <img src="figs/cht_solid_fluid_temp_Thot1_lambda4_Ra1E+03_tf40_dt1E-01.gif" height="300">
+  <img src="figs/cht_fluid_velocity_Thot1_lambda4_Ra1E+03_tf40_dt1E-01.gif" height="300" style="margin-top: -60px; margin-left: 425px;">
+</div>
+
+---
+
+## Solid-Fluid CHT with Natural Convection: Study 4 ($T_{\rm hot}$)
+
+- <span style="font-size: 85%;">$T_{\rm hot} = 2$, $\lambda = 4$, ${\rm Ra} = 1{\rm E+}3$, ${\rm Pr} = 1$</span>
+- <span style="font-size: 85%;">$\ell_{\rm left} = 4$, $\ell_{\rm right} = 5$</span>
+- <span style="font-size: 85%;">$\Delta t_{\rm coupling} = 0.1$, $T_f = 40$</span>
+
+```{shell}
+mpirun -n 2 tests/cht_solid_fluid_cwipi_samurai -t1 40 -dt 0.1 -T_hot 2 -lambda 4 -Ra 1000 -visu_freq 10 -export_velocity
+```
+
+<div style="display: flex; flex-direction: column; gap: -50px;">
+  <img src="figs/cht_solid_fluid_temp_Thot2_lambda4_Ra1E+03_tf40_dt1E-01.gif" height="300">
+  <img src="figs/cht_fluid_velocity_Thot2_lambda4_Ra1E+03_tf40_dt1E-01.gif" height="300" style="margin-top: -60px; margin-left: 425px;">
+</div>
 ---
 
 ## References
