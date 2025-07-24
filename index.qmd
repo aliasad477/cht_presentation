@@ -80,7 +80,7 @@ $$
 $$
 
 $$
-\color{blue}{A} x = \color{green}{b}
+\color{blue}{A} x = \color{green}{b} \qquad {\rm A\ linear\ system\ to\ solve\ due\ to\ explicit\ nonlinear\ terms.}
 $$
 
 
@@ -183,10 +183,12 @@ Parameters</span> -->
 ## Solid-Fluid CHT with Natural Convection : The setup
 
 \
+\
 
 <p align="left", style="color: red;"><strong><em>Neumann</em>-<em>Dirichlet</em> coupling</strong></p>
 where, $\lambda$ = ratio of thermal conductivities of fluid ($=1/\sqrt{{\rm Ra}}$) to solid.
 
+\
 \
 \
 
@@ -195,9 +197,9 @@ where, $\lambda$ = ratio of thermal conductivities of fluid ($=1/\sqrt{{\rm Ra}}
 #| echo: false
 import matplotlib.pyplot as plt
 # Create a figure and axis
-fig, ax = plt.subplots(figsize=(8,8), dpi=100)
-fig.patch.set_alpha(0)    # Transparent figure background
-ax.patch.set_alpha(0)
+fig, ax = plt.subplots(figsize=(8, 8), dpi=600)
+# fig.patch.set_alpha(0)    # Transparent figure background
+# ax.patch.set_alpha(0)
 # fig.set_dpi(300)
 
 # Draw the square (unit box from (0,0) to (1,1))
@@ -294,7 +296,23 @@ mpirun -n 2 tests/cht_solid_fluid_cwipi_samurai -t1 40 -dt 0.1 -T_hot 1 -lambda 
 
 ---
 
-## Solid-Fluid CHT with Natural Convection: Study 3 (Ra)
+## Solid-Fluid CHT with Natural Convection: Study 3 (reduce $\Delta t_{\rm coupling}$)
+
+- <span style="font-size: 85%;">$T_{\rm hot} = 1$, $\lambda = 4$, ${\rm Ra} = 1{\rm E+}2$, ${\rm Pr} = 1$</span>
+- <span style="font-size: 85%;">$\ell_{\rm left} = 4$, $\ell_{\rm right} = 5$</span>
+- <span style="font-size: 85%;">$\Delta t_{\rm coupling} = 0.05$, $T_f = 20$</span>
+```{shell}
+mpirun -n 2 tests/cht_solid_fluid_cwipi_samurai -t1 40 -dt 0.05 -T_hot 1 -lambda 4 -Ra 100 -visu_freq 10 -export_velocity
+```
+
+<div style="display: flex; flex-direction: column; gap: -50px;">
+  <img src="figs/cht_solid_fluid_temp_Thot1_lambda4_Ra1E+02_tf20_dt5E-02.gif" height="300">
+  <img src="figs/cht_fluid_velocity_Thot1_lambda4_Ra1E+02_tf20_dt5E-02.gif" height="300" style="margin-top: -60px; margin-left: 425px;">
+</div>
+
+---
+
+## Solid-Fluid CHT with Natural Convection: Study 4 (Ra)
 
 - <span style="font-size: 85%;">$T_{\rm hot} = 1$, $\lambda = 4$, ${\rm Ra} = 1{\rm E+}3$, ${\rm Pr} = 1$</span>
 - <span style="font-size: 85%;">$\ell_{\rm left} = 4$, $\ell_{\rm right} = 5$</span>
@@ -311,7 +329,7 @@ mpirun -n 2 tests/cht_solid_fluid_cwipi_samurai -t1 40 -dt 0.1 -T_hot 1 -lambda 
 
 ---
 
-## Solid-Fluid CHT with Natural Convection: Study 4 ($T_{\rm hot}$)
+## Solid-Fluid CHT with Natural Convection: Study 5 ($T_{\rm hot}$)
 
 - <span style="font-size: 85%;">$T_{\rm hot} = 2$, $\lambda = 4$, ${\rm Ra} = 1{\rm E+}3$, ${\rm Pr} = 1$</span>
 - <span style="font-size: 85%;">$\ell_{\rm left} = 4$, $\ell_{\rm right} = 5$</span>
@@ -328,14 +346,14 @@ mpirun -n 2 tests/cht_solid_fluid_cwipi_samurai -t1 40 -dt 0.1 -T_hot 2 -lambda 
 
 ---
 
-## Solid-Fluid CHT with Natural Convection: Study 5 ($t_{f}$)
+## Solid-Fluid CHT with Natural Convection: Study 6 (reached steady for $t_{f}=100$ at ${\rm Ra=1{\rm E+}2}$)
 
 - <span style="font-size: 85%;">$T_{\rm hot} = 1$, $\lambda = 2$, ${\rm Ra} = 1{\rm E+}2$, ${\rm Pr} = 1$</span>
 - <span style="font-size: 85%;">$\ell_{\rm left} = 4$, $\ell_{\rm right} = 5$</span>
 - <span style="font-size: 85%;">$\Delta t_{\rm coupling} = 0.1$, $T_f = 100$</span>
 
 ```{shell}
-mpirun -n 2 tests/cht_solid_fluid_cwipi_samurai -t1 40 -dt 0.1 -T_hot 2 -lambda 4 -Ra 1000 -visu_freq 10 -export_velocity
+mpirun -n 2 tests/cht_solid_fluid_cwipi_samurai -t1 100 -dt 0.1 -T_hot 1 -lambda 2 -Ra 100 -visu_freq 10 -export_velocity
 ```
 
 <div style="display: flex; flex-direction: column; gap: -50px;">
@@ -343,8 +361,27 @@ mpirun -n 2 tests/cht_solid_fluid_cwipi_samurai -t1 40 -dt 0.1 -T_hot 2 -lambda 
   <img src="figs/cht_fluid_velocity_Thot1_lambda2_Ra1E+02_tf100_dt1E-01.gif" height="300" style="margin-top: -60px; margin-left: 425px;">
 </div>
 
+---
+
+## Solid-Fluid CHT with Natural Convection: Study 7 (steady for $t_{f}=200$ at ${\rm Ra=1{\rm E+}3}$)
+
+- <span style="font-size: 85%;">$T_{\rm hot} = 1$, $\lambda = 4$, ${\rm Ra} = 1{\rm E+}3$, ${\rm Pr} = 1$</span>
+- <span style="font-size: 85%;">$\ell_{\rm left} = 4$, $\ell_{\rm right} = 5$</span>
+- <span style="font-size: 85%;">$\Delta t_{\rm coupling} = 0.1$, $T_f = 200$</span>
+
+```{shell}
+mpirun -n 2 tests/cht_solid_fluid_cwipi_samurai -t1 200 -dt 0.1 -T_hot 1 -lambda 4 -Ra 1000 -visu_freq 10 -export_velocity
+```
+
+<div style="display: flex; flex-direction: column; gap: -50px;">
+  <img src="figs/cht_solid_fluid_temp_Thot1_lambda4_Ra1E+03_tf200_dt1E-01.gif" height="300">
+  <img src="figs/cht_fluid_velocity_Thot1_lambda4_Ra1E+03_tf200_dt1E-01.gif" height="300" style="margin-top: -60px; margin-left: 425px;">
+</div>
+
 
 ---
+
+
 
 ## References
 ::: {#refs}
